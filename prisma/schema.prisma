@@ -1,0 +1,121 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// Enum Definitions
+// ============================================
+
+/// ユーザー役職
+enum Role {
+  SALES   // 営業担当者
+  MANAGER // 上長（マネージャー）
+}
+
+/// コメント対象区分
+enum TargetType {
+  PROBLEM // 課題・相談
+  PLAN    // 明日やること
+}
+
+// ============================================
+// Master Tables
+// ============================================
+
+/// ユーザー（営業担当者・上長）
+model User {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  email        String   @unique
+  name         String
+  passwordHash String   @map("password_hash")
+  department   String?
+  role         Role     @default(SALES)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  dailyReports DailyReport[] @relation("UserDailyReports")
+  comments     Comment[]     @relation("UserComments")
+
+  @@map("users")
+}
+
+/// 顧客マスタ
+model Customer {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  address       String?
+  phone         String?
+  contactPerson String?  @map("contact_person")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  visits Visit[] @relation("CustomerVisits")
+
+  @@map("customers")
+}
+
+// ============================================
+// Transaction Tables
+// ============================================
+
+/// 日報
+model DailyReport {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @map("user_id") @db.ObjectId
+  reportDate DateTime @map("report_date")
+  problem    String?  // 課題・相談（Problem）
+  plan       String?  // 明日やること（Plan）
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user     User      @relation("UserDailyReports", fields: [userId], references: [id])
+  visits   Visit[]   @relation("DailyReportVisits")
+  comments Comment[] @relation("DailyReportComments")
+
+  // Constraints: 同一ユーザーの同一日付の日報は1件のみ
+  @@unique([userId, reportDate])
+  @@map("daily_reports")
+}
+
+/// 訪問記録
+model Visit {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  dailyReportId String   @map("daily_report_id") @db.ObjectId
+  customerId    String   @map("customer_id") @db.ObjectId
+  content       String   // 訪問内容
+  visitTime     String?  @map("visit_time") // 訪問時間（HH:mm形式）
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  // Relations
+  dailyReport DailyReport @relation("DailyReportVisits", fields: [dailyReportId], references: [id], onDelete: Cascade)
+  customer    Customer    @relation("CustomerVisits", fields: [customerId], references: [id])
+
+  @@map("visits")
+}
+
+/// コメント（上長からのフィードバック）
+model Comment {
+  id            String     @id @default(auto()) @map("_id") @db.ObjectId
+  dailyReportId String     @map("daily_report_id") @db.ObjectId
+  userId        String     @map("user_id") @db.ObjectId
+  targetType    TargetType @map("target_type") // PROBLEM or PLAN
+  content       String     // コメント内容
+  createdAt     DateTime   @default(now()) @map("created_at")
+
+  // Relations
+  dailyReport DailyReport @relation("DailyReportComments", fields: [dailyReportId], references: [id], onDelete: Cascade)
+  user        User        @relation("UserComments", fields: [userId], references: [id])
+
+  @@map("comments")
+}
