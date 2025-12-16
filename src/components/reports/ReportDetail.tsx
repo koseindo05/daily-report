@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Button, Card, CardHeader, CardTitle, TextArea } from '@/components/ui'
+import { Button, Card, CardHeader, CardTitle, TextArea, ConfirmDialog } from '@/components/ui'
+import { useToast } from '@/components/notifications/ToastProvider'
 import type { ReportDetail as ReportDetailType, ApiResponse, CommentResponse } from '@/types'
 
 interface Props {
@@ -12,12 +13,14 @@ interface Props {
 
 export function ReportDetail({ reportId }: Props) {
   const router = useRouter()
+  const toast = useToast()
   const [report, setReport] = useState<ReportDetailType | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [newComment, setNewComment] = useState('')
   const [submittingComment, setSubmittingComment] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   const fetchReport = async () => {
     try {
@@ -53,22 +56,26 @@ export function ReportDetail({ reportId }: Props) {
     return timeStr
   }
 
-  const handleDelete = async () => {
-    if (!confirm('この日報を削除してもよろしいですか？')) return
+  const handleDeleteClick = () => {
+    setShowDeleteDialog(true)
+  }
 
+  const handleDelete = async () => {
+    setShowDeleteDialog(false)
     setDeleting(true)
     try {
       const res = await fetch(`/api/reports/${reportId}`, { method: 'DELETE' })
       const data: ApiResponse<void> = await res.json()
 
       if (data.success) {
+        toast.success('日報を削除しました')
         router.push('/reports')
       } else {
-        alert(data.error?.message || '削除に失敗しました')
+        toast.error(data.error?.message || '削除に失敗しました')
       }
     } catch (err) {
       console.error('Failed to delete report:', err)
-      alert('削除に失敗しました')
+      toast.error('削除に失敗しました')
     } finally {
       setDeleting(false)
     }
@@ -88,13 +95,14 @@ export function ReportDetail({ reportId }: Props) {
 
       if (data.success) {
         setNewComment('')
+        toast.success('コメントを追加しました')
         fetchReport()
       } else {
-        alert(data.error?.message || 'コメントの追加に失敗しました')
+        toast.error(data.error?.message || 'コメントの追加に失敗しました')
       }
     } catch (err) {
       console.error('Failed to add comment:', err)
-      alert('コメントの追加に失敗しました')
+      toast.error('コメントの追加に失敗しました')
     } finally {
       setSubmittingComment(false)
     }
@@ -128,11 +136,22 @@ export function ReportDetail({ reportId }: Props) {
           <Link href={`/reports/${reportId}/edit`}>
             <Button variant="secondary">編集</Button>
           </Link>
-          <Button variant="danger" onClick={handleDelete} disabled={deleting}>
+          <Button variant="danger" onClick={handleDeleteClick} disabled={deleting}>
             {deleting ? '削除中...' : '削除'}
           </Button>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={showDeleteDialog}
+        title="日報の削除"
+        message="この日報を削除してもよろしいですか？この操作は取り消せません。"
+        confirmLabel="削除"
+        cancelLabel="キャンセル"
+        variant="danger"
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteDialog(false)}
+      />
 
       <Card className="mb-6">
         <CardHeader>

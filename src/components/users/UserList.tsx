@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Button, Card } from '@/components/ui'
+import { Button, Card, Pagination, LoadingOverlay } from '@/components/ui'
 import type { UserListItem, ApiResponse, PaginationInfo } from '@/types'
 
 interface UsersResponse {
@@ -58,7 +58,7 @@ export function UserList() {
 
       <Card>
         {loading ? (
-          <div className="text-center py-8 text-gray-500">読み込み中...</div>
+          <LoadingOverlay label="ユーザーを読み込み中..." />
         ) : users.length === 0 ? (
           <div className="text-center py-8 text-gray-500">ユーザーがいません</div>
         ) : (
@@ -113,28 +113,13 @@ export function UserList() {
               </table>
             </div>
 
-            {pagination && pagination.totalPages > 1 && (
-              <div className="flex justify-center items-center space-x-4 mt-6">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  disabled={page <= 1}
-                  onClick={() => setPage((p) => p - 1)}
-                >
-                  前へ
-                </Button>
-                <span className="text-sm text-gray-600">
-                  {page} / {pagination.totalPages}
-                </span>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  disabled={page >= pagination.totalPages}
-                  onClick={() => setPage((p) => p + 1)}
-                >
-                  次へ
-                </Button>
-              </div>
+            {pagination && (
+              <Pagination
+                currentPage={page}
+                totalPages={pagination.totalPages}
+                onPageChange={setPage}
+                className="mt-6"
+              />
             )}
           </>
         )}

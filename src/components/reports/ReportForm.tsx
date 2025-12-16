@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button, Input, TextArea, Select, Card, CardHeader, CardTitle } from '@/components/ui'
+import { useToast } from '@/components/notifications/ToastProvider'
 import type { Customer, ReportDetail, ApiResponse, CreateReportRequest, UpdateReportRequest } from '@/types'
 
 interface VisitInput {
@@ -18,6 +19,7 @@ interface Props {
 
 export function ReportForm({ reportId }: Props) {
   const router = useRouter()
+  const toast = useToast()
   const isEdit = !!reportId
 
   const [reportDate, setReportDate] = useState('')
@@ -161,12 +163,12 @@ export function ReportForm({ reportId }: Props) {
           })
           setErrors(fieldErrors)
         } else {
-          alert(data.error?.message || '保存に失敗しました')
+          toast.error(data.error?.message || '保存に失敗しました')
         }
       }
     } catch (err) {
       console.error('Failed to submit:', err)
-      alert('保存に失敗しました')
+      toast.error('保存に失敗しました')
     } finally {
       setSubmitting(false)
     }
