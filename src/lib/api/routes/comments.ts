@@ -9,8 +9,9 @@ comments.post('/:reportId/comments', async (c) => {
   const reportId = c.req.param('reportId')
   const { content } = await c.req.json<{ content: string }>()
 
-  // TODO: 認証から取得
-  const userId = 'temp-user-id'
+  // 認証から取得
+  const user = c.get('user')
+  const userId = user.userId
 
   if (!content || content.trim().length === 0) {
     const response: ApiResponse<never> = {
@@ -82,8 +83,9 @@ comments.delete('/:reportId/comments/:commentId', async (c) => {
   const reportId = c.req.param('reportId')
   const commentId = c.req.param('commentId')
 
-  // TODO: 認証から取得
-  const userId = 'temp-user-id'
+  // 認証から取得
+  const user = c.get('user')
+  const userId = user.userId
 
   try {
     const comment = await prisma.comment.findUnique({
@@ -101,8 +103,8 @@ comments.delete('/:reportId/comments/:commentId', async (c) => {
       return c.json(response, 404)
     }
 
-    // TODO: 権限チェック（投稿者本人またはマネージャーのみ削除可能）
-    if (comment.userId !== userId) {
+    // 権限チェック（投稿者本人またはマネージャーのみ削除可能）
+    if (comment.userId !== userId && user.role !== 'MANAGER') {
       const response: ApiResponse<never> = {
         success: false,
         error: {

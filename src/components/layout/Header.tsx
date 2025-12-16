@@ -1,10 +1,14 @@
 'use client'
 
 import Link from 'next/link'
+import { useAuth } from '@/components/auth'
 
 export function Header() {
-  // TODO: 認証情報から取得
-  const user: { name: string; role: 'SALES' | 'MANAGER' } = { name: '山田太郎', role: 'SALES' }
+  const { user, logout } = useAuth()
+
+  if (!user) {
+    return null
+  }
 
   return (
     <header className="bg-white shadow-sm border-b">
@@ -42,9 +46,7 @@ export function Header() {
           <div className="flex items-center space-x-4">
             <span className="text-sm text-gray-600">{user.name}</span>
             <button
-              onClick={() => {
-                // TODO: ログアウト処理
-              }}
+              onClick={logout}
               className="text-sm text-gray-500 hover:text-gray-700"
             >
               ログアウト

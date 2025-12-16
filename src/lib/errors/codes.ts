@@ -1,0 +1,40 @@
+/**
+ * エラーコード定義
+ */
+export const ERROR_CODES = {
+  INVALID_REQUEST: 'INVALID_REQUEST',
+  UNAUTHORIZED: 'UNAUTHORIZED',
+  FORBIDDEN: 'FORBIDDEN',
+  NOT_FOUND: 'NOT_FOUND',
+  DUPLICATE_ENTRY: 'DUPLICATE_ENTRY',
+  VALIDATION_ERROR: 'VALIDATION_ERROR',
+  INTERNAL_ERROR: 'INTERNAL_ERROR',
+} as const;
+
+export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
+
+/**
+ * エラーコードとHTTPステータスコードのマッピング
+ */
+export const ERROR_STATUS_MAP: Record<ErrorCode, number> = {
+  [ERROR_CODES.INVALID_REQUEST]: 400,
+  [ERROR_CODES.UNAUTHORIZED]: 401,
+  [ERROR_CODES.FORBIDDEN]: 403,
+  [ERROR_CODES.NOT_FOUND]: 404,
+  [ERROR_CODES.DUPLICATE_ENTRY]: 400,
+  [ERROR_CODES.VALIDATION_ERROR]: 400,
+  [ERROR_CODES.INTERNAL_ERROR]: 500,
+};
+
+/**
+ * エラーメッセージのデフォルト値
+ */
+export const ERROR_MESSAGES: Record<ErrorCode, string> = {
+  [ERROR_CODES.INVALID_REQUEST]: 'リクエスト形式が不正です',
+  [ERROR_CODES.UNAUTHORIZED]: '認証が必要です',
+  [ERROR_CODES.FORBIDDEN]: '権限がありません',
+  [ERROR_CODES.NOT_FOUND]: 'リソースが見つかりません',
+  [ERROR_CODES.DUPLICATE_ENTRY]: 'データが既に存在します',
+  [ERROR_CODES.VALIDATION_ERROR]: '入力内容に誤りがあります',
+  [ERROR_CODES.INTERNAL_ERROR]: 'サーバーエラーが発生しました',
+};
