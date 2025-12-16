@@ -37,12 +37,11 @@ async function main() {
 
   console.log('Created users:', { salesUser: salesUser.email, managerUser: managerUser.email })
 
-  // 顧客を作成
+  // 顧客を作成（PostgreSQLではUUIDを自動生成するので、nameで検索）
   const customer1 = await prisma.customer.upsert({
-    where: { id: 'customer-1' },
+    where: { id: (await prisma.customer.findFirst({ where: { name: '株式会社ABC' } }))?.id ?? '00000000-0000-0000-0000-000000000001' },
     update: {},
     create: {
-      id: 'customer-1',
       name: '株式会社ABC',
       address: '東京都渋谷区1-2-3',
       phone: '03-1234-5678',
@@ -51,10 +50,9 @@ async function main() {
   })
 
   const customer2 = await prisma.customer.upsert({
-    where: { id: 'customer-2' },
+    where: { id: (await prisma.customer.findFirst({ where: { name: '有限会社XYZ' } }))?.id ?? '00000000-0000-0000-0000-000000000002' },
     update: {},
     create: {
-      id: 'customer-2',
       name: '有限会社XYZ',
       address: '大阪府大阪市北区4-5-6',
       phone: '06-9876-5432',
@@ -63,10 +61,9 @@ async function main() {
   })
 
   const customer3 = await prisma.customer.upsert({
-    where: { id: 'customer-3' },
+    where: { id: (await prisma.customer.findFirst({ where: { name: '合同会社DEF' } }))?.id ?? '00000000-0000-0000-0000-000000000003' },
     update: {},
     create: {
-      id: 'customer-3',
       name: '合同会社DEF',
       address: '愛知県名古屋市中区7-8-9',
       phone: '052-1111-2222',

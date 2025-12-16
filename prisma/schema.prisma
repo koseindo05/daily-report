@@ -6,8 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ============================================
@@ -32,7 +33,7 @@ enum TargetType {
 
 /// ユーザー（営業担当者・上長）
 model User {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  id           String   @id @default(uuid())
   email        String   @unique
   name         String
   passwordHash String   @map("password_hash")
@@ -50,7 +51,7 @@ model User {
 
 /// 顧客マスタ
 model Customer {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  id            String   @id @default(uuid())
   name          String
   address       String?
   phone         String?
@@ -70,11 +71,11 @@ model Customer {
 
 /// 日報
 model DailyReport {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId     String   @map("user_id") @db.ObjectId
-  reportDate DateTime @map("report_date")
-  problem    String?  // 課題・相談（Problem）
-  plan       String?  // 明日やること（Plan）
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  reportDate DateTime @map("report_date") @db.Date
+  problem    String?  @db.Text // 課題・相談（Problem）
+  plan       String?  @db.Text // 明日やること（Plan）
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
 
@@ -90,10 +91,10 @@ model DailyReport {
 
 /// 訪問記録
 model Visit {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  dailyReportId String   @map("daily_report_id") @db.ObjectId
-  customerId    String   @map("customer_id") @db.ObjectId
-  content       String   // 訪問内容
+  id            String   @id @default(uuid())
+  dailyReportId String   @map("daily_report_id")
+  customerId    String   @map("customer_id")
+  content       String   @db.Text // 訪問内容
   visitTime     String?  @map("visit_time") // 訪問時間（HH:mm形式）
   createdAt     DateTime @default(now()) @map("created_at")
 
@@ -106,11 +107,11 @@ model Visit {
 
 /// コメント（上長からのフィードバック）
 model Comment {
-  id            String     @id @default(auto()) @map("_id") @db.ObjectId
-  dailyReportId String     @map("daily_report_id") @db.ObjectId
-  userId        String     @map("user_id") @db.ObjectId
+  id            String     @id @default(uuid())
+  dailyReportId String     @map("daily_report_id")
+  userId        String     @map("user_id")
   targetType    TargetType @map("target_type") // PROBLEM or PLAN
-  content       String     // コメント内容
+  content       String     @db.Text // コメント内容
   createdAt     DateTime   @default(now()) @map("created_at")
 
   // Relations
