@@ -70,7 +70,7 @@ test.describe('ログインシナリオ', () => {
 
     // Assert
     // エラーメッセージが表示されることを確認
-    await expect(page.getByText('ログインに失敗しました')).toBeVisible()
+    await expect(page.getByText('メールアドレスまたはパスワードが正しくありません')).toBeVisible()
     // ログインページに留まることを確認
     await expect(page).toHaveURL('/login')
   })
@@ -87,7 +87,7 @@ test.describe('ログインシナリオ', () => {
 
     // Assert
     // エラーメッセージが表示されることを確認
-    await expect(page.getByText('ログインに失敗しました')).toBeVisible()
+    await expect(page.getByText('メールアドレスまたはパスワードが正しくありません')).toBeVisible()
     // ログインページに留まることを確認
     await expect(page).toHaveURL('/login')
   })

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button, Input, Card, CardHeader, CardTitle } from '@/components/ui'
+import { useAuth } from '@/components/auth/AuthProvider'
 import type { ApiResponse } from '@/types'
 
 interface LoginResponse {
@@ -18,6 +19,7 @@ interface LoginResponse {
 
 export function LoginForm() {
   const router = useRouter()
+  const { login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -38,9 +40,8 @@ export function LoginForm() {
       const data: ApiResponse<LoginResponse> = await res.json()
 
       if (data.success && data.data) {
-        // ローカルストレージにトークンを保存
-        localStorage.setItem('auth-token', data.data.token)
-        localStorage.setItem('user', JSON.stringify(data.data.user))
+        // AuthProviderのlogin関数を使用してステートとlocalStorageを同時に更新
+        login(data.data.token, data.data.user)
 
         // 日報一覧ページにリダイレクト
         router.push('/reports')
