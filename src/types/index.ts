@@ -150,3 +150,34 @@ export interface UpdateReportRequest {
   problem?: string
   plan?: string
 }
+
+// User API Types
+export interface UserListItem {
+  id: string
+  name: string
+  email: string
+  department: string | null
+  role: Role
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface CreateUserRequest {
+  name: string
+  email: string
+  password: string
+  department?: string
+  role: 'SALES' | 'MANAGER'
+}
+
+export interface UpdateUserRequest {
+  name?: string
+  email?: string
+  department?: string | null
+  role?: 'SALES' | 'MANAGER'
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string
+  newPassword: string
+}

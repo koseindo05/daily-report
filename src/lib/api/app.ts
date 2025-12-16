@@ -5,6 +5,7 @@ import { auth } from './routes/auth'
 import { reports } from './routes/reports'
 import { comments } from './routes/comments'
 import { customers } from './routes/customers'
+import { users } from './routes/users'
 import { authMiddleware } from '@/lib/auth'
 
 // Create Hono app
@@ -23,11 +24,13 @@ app.get('/health', (c) => c.json({ status: 'ok' }))
 // Protected routes (認証必要)
 app.use('/reports/*', authMiddleware)
 app.use('/customers/*', authMiddleware)
+app.use('/users/*', authMiddleware)
 
 // Routes
 app.route('/reports', reports)
 app.route('/reports', comments)
 app.route('/customers', customers)
+app.route('/users', users)
 
 // Error handling
 app.onError((err, c) => {
