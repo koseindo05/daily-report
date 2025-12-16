@@ -4,18 +4,6 @@
   "buildCommand": "npx prisma generate && next build",
   "installCommand": "npm install",
   "devCommand": "next dev",
-  "env": {
-    "DATABASE_URL": "@database_url",
-    "JWT_SECRET": "@jwt_secret",
-    "JWT_EXPIRES_IN": "@jwt_expires_in"
-  },
-  "build": {
-    "env": {
-      "DATABASE_URL": "@database_url",
-      "JWT_SECRET": "@jwt_secret",
-      "JWT_EXPIRES_IN": "@jwt_expires_in"
-    }
-  },
   "regions": ["hnd1"],
   "functions": {
     "src/app/api/**/*.ts": {
