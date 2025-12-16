@@ -143,8 +143,9 @@ reports.get('/:id', async (c) => {
 reports.post('/', async (c) => {
   const body = await c.req.json<CreateReportRequest>()
 
-  // TODO: 認証から取得
-  const userId = 'temp-user-id'
+  // 認証から取得
+  const user = c.get('user')
+  const userId = user.userId
 
   // Validate report date (not future)
   const reportDate = new Date(body.reportDate)
@@ -224,8 +225,9 @@ reports.put('/:id', async (c) => {
   const { id } = c.req.param()
   const body = await c.req.json<UpdateReportRequest>()
 
-  // TODO: 認証から取得して本人確認
-  const _userId = 'temp-user-id'
+  // 認証から取得
+  const user = c.get('user')
+  const userId = user.userId
 
   // Check if report exists and belongs to user
   const existing = await prisma.dailyReport.findUnique({
@@ -245,10 +247,19 @@ reports.put('/:id', async (c) => {
     )
   }
 
-  // TODO: 本人確認（認証実装後）
-  // if (existing.userId !== userId) {
-  //   return c.json({ success: false, error: { code: 'FORBIDDEN', message: '権限がありません' } }, 403)
-  // }
+  // 本人確認（本人またはマネージャーのみ編集可能）
+  if (existing.userId !== userId && user.role !== 'MANAGER') {
+    return c.json(
+      {
+        success: false,
+        error: {
+          code: 'FORBIDDEN',
+          message: 'この日報を編集する権限がありません',
+        },
+      },
+      403
+    )
+  }
 
   // Delete existing visits and create new ones
   await prisma.visit.deleteMany({
@@ -284,8 +295,9 @@ reports.put('/:id', async (c) => {
 reports.delete('/:id', async (c) => {
   const { id } = c.req.param()
 
-  // TODO: 認証から取得して本人確認
-  const _userId = 'temp-user-id'
+  // 認証から取得
+  const user = c.get('user')
+  const userId = user.userId
 
   // Check if report exists
   const existing = await prisma.dailyReport.findUnique({
@@ -305,7 +317,19 @@ reports.delete('/:id', async (c) => {
     )
   }
 
-  // TODO: 本人確認（認証実装後）
+  // 本人確認（本人またはマネージャーのみ削除可能）
+  if (existing.userId !== userId && user.role !== 'MANAGER') {
+    return c.json(
+      {
+        success: false,
+        error: {
+          code: 'FORBIDDEN',
+          message: 'この日報を削除する権限がありません',
+        },
+      },
+      403
+    )
+  }
 
   // Delete report (visits and comments will cascade)
   await prisma.dailyReport.delete({
