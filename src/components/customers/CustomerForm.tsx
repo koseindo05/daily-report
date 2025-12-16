@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button, Input, Card, CardHeader, CardTitle } from '@/components/ui'
+import { useToast } from '@/components/notifications/ToastProvider'
 import type { Customer, ApiResponse } from '@/types'
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
 
 export function CustomerForm({ customerId }: Props) {
   const router = useRouter()
+  const toast = useToast()
   const isEdit = !!customerId
 
   const [name, setName] = useState('')
@@ -42,12 +44,12 @@ export function CustomerForm({ customerId }: Props) {
         setPhone(customer.phone || '')
         setContactPerson(customer.contactPerson || '')
       } else {
-        alert('顧客情報の取得に失敗しました')
+        toast.error('顧客情報の取得に失敗しました')
         router.push('/customers')
       }
     } catch (err) {
       console.error('Failed to fetch customer:', err)
-      alert('顧客情報の取得に失敗しました')
+      toast.error('顧客情報の取得に失敗しました')
       router.push('/customers')
     } finally {
       setLoading(false)
@@ -104,7 +106,7 @@ export function CustomerForm({ customerId }: Props) {
       const data: ApiResponse<Customer> = await res.json()
 
       if (data.success) {
-        alert(isEdit ? '顧客情報を更新しました' : '顧客を登録しました')
+        toast.success(isEdit ? '顧客情報を更新しました' : '顧客を登録しました')
         router.push('/customers')
       } else {
         if (data.error?.details) {
@@ -114,12 +116,12 @@ export function CustomerForm({ customerId }: Props) {
           })
           setErrors(fieldErrors)
         } else {
-          alert(data.error?.message || '保存に失敗しました')
+          toast.error(data.error?.message || '保存に失敗しました')
         }
       }
     } catch (err) {
       console.error('Failed to submit:', err)
-      alert('保存に失敗しました')
+      toast.error('保存に失敗しました')
     } finally {
       setSubmitting(false)
     }

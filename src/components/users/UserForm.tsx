@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Button, Input, Select, Card } from '@/components/ui'
+import { Button, Input, Select, Card, ConfirmDialog } from '@/components/ui'
+import { useToast } from '@/components/notifications/ToastProvider'
 import type { UserListItem, ApiResponse, CreateUserRequest, UpdateUserRequest } from '@/types'
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
 
 export function UserForm({ userId }: Props) {
   const router = useRouter()
+  const toast = useToast()
   const isEdit = !!userId
 
   const [name, setName] = useState('')
@@ -22,6 +24,7 @@ export function UserForm({ userId }: Props) {
   const [loading, setLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   useEffect(() => {
     if (isEdit) {
@@ -119,6 +122,7 @@ export function UserForm({ userId }: Props) {
       const data: ApiResponse<{ id: string; message: string }> = await res.json()
 
       if (data.success) {
+        toast.success(isEdit ? 'ユーザー情報を更新しました' : 'ユーザーを登録しました')
         router.push('/users')
       } else {
         // Handle API errors
@@ -129,20 +133,23 @@ export function UserForm({ userId }: Props) {
           })
           setErrors(fieldErrors)
         } else {
-          alert(data.error?.message || 'エラーが発生しました')
+          toast.error(data.error?.message || 'エラーが発生しました')
         }
       }
     } catch (error) {
       console.error('Failed to save user:', error)
-      alert('ユーザーの保存に失敗しました')
+      toast.error('ユーザーの保存に失敗しました')
     } finally {
       setSubmitting(false)
     }
   }
 
-  const handleDelete = async () => {
-    if (!confirm('本当に削除しますか?')) return
+  const handleDeleteClick = () => {
+    setShowDeleteDialog(true)
+  }
 
+  const handleDelete = async () => {
+    setShowDeleteDialog(false)
     try {
       const res = await fetch(`/api/users/${userId}`, {
         method: 'DELETE',
@@ -151,13 +158,14 @@ export function UserForm({ userId }: Props) {
       const data: ApiResponse<{ message: string }> = await res.json()
 
       if (data.success) {
+        toast.success('ユーザーを削除しました')
         router.push('/users')
       } else {
-        alert(data.error?.message || '削除に失敗しました')
+        toast.error(data.error?.message || '削除に失敗しました')
       }
     } catch (error) {
       console.error('Failed to delete user:', error)
-      alert('削除に失敗しました')
+      toast.error('削除に失敗しました')
     }
   }
 
@@ -242,7 +250,7 @@ export function UserForm({ userId }: Props) {
               <Button
                 type="button"
                 variant="secondary"
-                onClick={handleDelete}
+                onClick={handleDeleteClick}
                 className="ml-auto text-red-600 hover:text-red-800"
               >
                 削除
@@ -251,6 +259,17 @@ export function UserForm({ userId }: Props) {
           </div>
         </form>
       </Card>
+
+      <ConfirmDialog
+        isOpen={showDeleteDialog}
+        title="ユーザーの削除"
+        message="このユーザーを削除してもよろしいですか？この操作は取り消せません。"
+        confirmLabel="削除"
+        cancelLabel="キャンセル"
+        variant="danger"
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteDialog(false)}
+      />
     </div>
   )
 }
